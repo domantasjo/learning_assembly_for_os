@@ -1,28 +1,34 @@
-[org 0x7c00] ;Sets origin to 0x7c00, where the BIOS loads the boot sector
+[org 0x7c00] ; tell the assembler that our offset is bootsector code
 
+; The main routine makes sure the parameters are ready and then calls the function
+mov bx, HELLO
+call print
 
-mov ah, 0x0e ;Set the teletype output function for BIOS interrupts
-mov bp, 0x8000
-mov sp, bp
+call print_nl
 
-push 'A'
-push 'B'
-push 'C'
+mov bx, GOODBYE
+call print
 
-pop bx
-mov al, bl
-int 0x10
+call print_nl
 
-pop bx
-mov al, bl
-int 0x10
+mov dx, 0x12fe
+call print_hex
 
-mov al , [0x7ffe]
-int 0x10
-
+; that's it! we can hang now
 jmp $
 
+; remember to include subroutines below the hang
+%include "bootsector_print.asm"
+%include "bootsector_print_hex.asm"
 
 
-times 510-($-$$) db 0 ;Fill the rest of the boot sector with zeros until we reach 510 bytes
-dw 0xaa55 ;Last two bytes of the boot sector must be 0xAA55 to indicate a valid boot sector
+; data
+HELLO:
+    db 'Hello, World', 0
+
+GOODBYE:
+    db 'Goodbye', 0
+
+; padding and magic number
+times 510-($-$$) db 0
+dw 0xaa55
